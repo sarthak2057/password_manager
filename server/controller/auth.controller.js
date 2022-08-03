@@ -30,7 +30,6 @@ const handleAuth = async (req,res) => {
         //saving refreshtoken with current user
         foundUser.refreshToken = refreshToken;
         const result = await foundUser.save();
-        console.log(result);
 
         res.cookie('jwt',refreshToken,{httpOnly:true,maxAge:24*60*60,sameSite:'None'});
         res.json({accessToken});
