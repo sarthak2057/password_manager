@@ -1,41 +1,42 @@
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const helmet = require('helmet');
+require('dotenv').config();
 const express = require('express');
-
-const PORT =3000;
-
+const path = require('path');
+const connectDB = require('./config/dbCon');
+const verifyJWT = require('./middleware/verifyJWT');
+const cookieParser = require('cookie-parser');
 const app = express();
 
-//adding helmet middleware
-app.use(helmet());
+/*
+built-in middleware to handle urlencoded data
+in other word, form:
+'content-type: application/x-www-form-urlencoded'
+*/
+app.use(express.urlencoded({ extended: false }));
+//built in middleware for json
+app.use(express.json());
 
-app.get('/secret',(req,res)=>{
-    return res.send('Your secret key is 42!');
-}) 
+//middleware for cookies
+app.use(cookieParser());
 
-//time stamp microservice
-app.get('/api/:time',(req,res)=>{
-    let timestamp = req.params.time;
-    const responseObj = {};
-    if(timestamp.includes('-')){
-        responseObj['unix'] = new Date(timestamp).getTime();
-        responseObj['utc'] = new Date(timestamp).toUTCString();
-    }else{
-        timestamp = parseInt(timestamp);
-        responseObj['unix'] = new Date(timestamp).getTime();
-        responseObj['utc'] = new Date(timestamp).toUTCString();
-    }
-    res.json(responseObj);
-})
-app.get('/',(req,res)=>{
-    res.send('Hello World');
-})
+app.use('/register', require('./routes/register.route'));
+app.use('/auth',require('./routes/auth.router'));
 
-https.createServer({
-    key:fs.readFileSync('key.pem'),
-    cert:fs.readFileSync('cert.pem'),
-},app).listen(PORT,()=>{
-    console.log(`Listening on port ${PORT}...`);
-})
+app.all('*', (req, res) => {
+  res.status(404);
+  if (req.accepts('html')) {
+    res.sendFile(path.join(__dirname, 'views', '404.html'));
+  } else if (req.accepts('json')) {
+    res.json({ error: '404 Not Found' });
+  } else {
+    res.type('txt').send(' 404 Not Found');
+  }
+});
+
+async function startServer() {
+  await connectDB();
+  app.listen(process.env.PORT, () => {
+    console.log('Server is listening on port ' + process.env.PORT);
+  });
+}
+
+startServer();
