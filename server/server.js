@@ -19,7 +19,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/register', require('./routes/register.route'));
-app.use('/auth',require('./routes/auth.router'));
+app.use('/auth', require('./routes/auth.router'));
+app.use(verifyJWT);
+app.use('/manage-password', require('./routes/passwordManager.route'));
 
 app.all('*', (req, res) => {
   res.status(404);
