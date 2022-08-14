@@ -1,11 +1,20 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
+const corsOptions = require('./config/corsOptions');
 const connectDB = require('./config/dbCon');
 const verifyJWT = require('./middleware/verifyJWT');
 const cookieParser = require('cookie-parser');
+const credentials = require('./middleware/credentials');
 const app = express();
 
+
+//Handle options credentials check - before CORS!
+// and fetch cookies credentials requirement
+app.use(credentials);
+//cross-origin resource sharing
+app.use(cors(corsOptions));
 /*
 built-in middleware to handle urlencoded data
 in other word, form:
